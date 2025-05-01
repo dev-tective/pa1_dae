@@ -11,37 +11,50 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ContactDAO implements DAORepository<Contact, Long> {
-
     private final Logger log = LoggerFactory.getLogger(ContactDAO.class);
     private final Connection con = DBConnector.dbConnector.getCon();
     public final static ContactDAO instance = new ContactDAO();
 
+    //Crea la tabla si no existe
     private ContactDAO() {
+        String createTable = """
+            CREATE TABLE IF NOT EXISTS contacts (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                firstname VARCHAR(100),
+                lastname VARCHAR(100),
+                company VARCHAR(100),
+                phone_number VARCHAR(20),
+                email VARCHAR(100),
+                birth_date DATE,
+                address VARCHAR(255)
+        );""";
 
+        try (Statement stmt = con.createStatement()) {
+            stmt.execute(createTable);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    //Devuelve el objeto si es guardado
     @Override
     public Contact save(Contact c) {
-        String query = "INSERT INTO contacts " +
-                "(firstname," +
-                " lastname, " +
-                "company," +
-                " phone_number, " +
-                "email," +
-                " birth_date, " +
-                "address) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String query = """
+            INSERT INTO contacts
+                (firstname,
+                lastname,
+                company,
+                phone_number,
+                email,
+                birth_date,
+                address)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+        """;
 
         try(PreparedStatement ps = con
                 .prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setString(1, c.getFirstName());
-            ps.setString(2, c.getLastName());
-            ps.setString(3, c.getCompany());
-            ps.setString(4, c.getPhoneNumber());
-            ps.setString(5, c.getEmail());
-            ps.setDate(6, Date.valueOf(c.getBirthDate()));
-            ps.setString(7, c.getAddress());
+            setContactData(c, ps);
 
             int affectedRows = ps.executeUpdate();
 
@@ -64,11 +77,52 @@ public class ContactDAO implements DAORepository<Contact, Long> {
         return null;
     }
 
+    //Actualiza y devuelve si existe
     @Override
     public Contact update(Contact contact) {
-        return null;
+        String query = """
+            UPDATE contacts SET
+                firstname = ?,
+                lastname = ?,
+                company = ?,
+                phone_number = ?,
+                email = ?,
+                birth_date = ?,
+                address = ?
+            WHERE id = ?
+        """;
+
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+            setContactData(contact, ps);
+            ps.setLong(8, contact.getId());
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                log.info("Contacto con ID {} actualizado con éxito.", contact.getId());
+                return contact;
+            }
+
+            log.warn("Contacto con ID {} no encontrado.", contact.getId());
+            return null;
+        } catch (SQLException e) {
+            log.error("Error al actualizar contacto: {}", e.getMessage());
+            return null;
+        }
     }
 
+    //Coloca los datos del query SAVE y UPDATE
+    private void setContactData(Contact contactUpdate, PreparedStatement ps) throws SQLException {
+        ps.setString(1, contactUpdate.getFirstName());
+        ps.setString(2, contactUpdate.getLastName());
+        ps.setString(3, contactUpdate.getCompany());
+        ps.setString(4, contactUpdate.getPhoneNumber());
+        ps.setString(5, contactUpdate.getEmail());
+        ps.setDate(6, Date.valueOf(contactUpdate.getBirthDate()));
+        ps.setString(7, contactUpdate.getAddress());
+    }
+
+    //Elimina un contacto por su id
     @Override
     public void delete(Long id) {
         String query = "DELETE FROM contacts WHERE id = ?";
@@ -89,6 +143,7 @@ public class ContactDAO implements DAORepository<Contact, Long> {
         }
     }
 
+    //Lista todos los contactos
     @Override
     public List<Contact> findAll() {
         String query = "SELECT * FROM contacts";
@@ -118,6 +173,7 @@ public class ContactDAO implements DAORepository<Contact, Long> {
         return contacts;
     }
 
+    //Busca un contacto por su id
     @Override
     public Contact findById(Long id) {
         String query = "SELECT * FROM contacts WHERE id = ?";
