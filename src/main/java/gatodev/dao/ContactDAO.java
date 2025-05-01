@@ -65,7 +65,21 @@ public class ContactDAO implements DAORepository<Contact, Long> {
 
     @Override
     public void delete(Long aLong) {
+        String query = "DELETE FROM contacts WHERE id = ?";
 
+        try (PreparedStatement ps = con.prepareStatement(query)) {
+        ps.setLong(1, aLong);
+
+        int affectedRows = ps.executeUpdate();
+
+        if (affectedRows == 0) {
+            JOptionPane.showMessageDialog(null, "No se encontró el contacto con el ID proporcionado.");
+            } else {
+            JOptionPane.showMessageDialog(null, "Contacto eliminado exitosamente.");
+            }
+        } catch (SQLException e) {
+        throw new RuntimeException("Error al eliminar el contacto: " + e.getMessage(), e);
+        }
     }
 
     @Override
