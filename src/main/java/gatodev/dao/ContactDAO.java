@@ -113,8 +113,8 @@ public class ContactDAO implements DAORepository<Contact, Long> {
 
     //Coloca los datos del query SAVE y UPDATE
     private void setContactData(Contact contactUpdate, PreparedStatement ps) throws SQLException {
-        ps.setString(1, contactUpdate.getFirstName());
-        ps.setString(2, contactUpdate.getLastName());
+        ps.setString(1, contactUpdate.getFirstname());
+        ps.setString(2, contactUpdate.getLastname());
         ps.setString(3, contactUpdate.getCompany());
         ps.setString(4, contactUpdate.getPhoneNumber());
         ps.setString(5, contactUpdate.getEmail());
@@ -157,8 +157,8 @@ public class ContactDAO implements DAORepository<Contact, Long> {
             while (rs.next()) {
                 contacts.add(Contact.builder()
                         .id(rs.getLong("id"))
-                        .firstName(rs.getString("firstname"))
-                        .lastName(rs.getString("lastname"))
+                        .firstname(rs.getString("firstname"))
+                        .lastname(rs.getString("lastname"))
                         .company(rs.getString("company"))
                         .phoneNumber(rs.getString("phone_number"))
                         .email(rs.getString("email"))
@@ -187,8 +187,8 @@ public class ContactDAO implements DAORepository<Contact, Long> {
             if(rs.next()) {
                 Contact contact = Contact.builder()
                         .id(rs.getLong("id"))
-                        .firstName(rs.getString("firstname"))
-                        .lastName(rs.getString("lastname"))
+                        .firstname(rs.getString("firstname"))
+                        .lastname(rs.getString("lastname"))
                         .company(rs.getString("company"))
                         .phoneNumber(rs.getString("phone_number"))
                         .email(rs.getString("email"))

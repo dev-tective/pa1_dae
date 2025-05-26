@@ -12,8 +12,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class Contact {
     private Long id;
-    private String firstName;
-    private String lastName;
+    private String firstname;
+    private String lastname;
     private String company;
     private String phoneNumber;
     private String email;
